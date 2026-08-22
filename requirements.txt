@@ -1,0 +1,16 @@
+pandas
+numpy
+phonenumbers
+price-parser
+emoji
+nltk
+malaya
+gensim
+scikit-learn
+seaborn
+matplotlib
+joblib
+torch
+beautifulsoup4
+ipywidgets
+PySastrawi
