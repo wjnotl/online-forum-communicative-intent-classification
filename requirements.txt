@@ -14,3 +14,4 @@ torch
 beautifulsoup4
 ipywidgets
 PySastrawi
+contractions
