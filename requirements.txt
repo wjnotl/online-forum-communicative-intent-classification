@@ -1,7 +1,6 @@
 pandas
 numpy
 phonenumbers
-price-parser
 emoji
 nltk
 spacy
