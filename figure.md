@@ -44,7 +44,7 @@ display(sample_opinion)
 ### Figure 3.5
 
 * **Exact Word Document Placement:** In Section 3.2.3, replace `[Insert Figure 3.X here. A short screenshot showing two or three real raw posts from your dataset that clearly display this messiness, ideally one with a quote block visible, one with an emoji, and one that mixes English and Malay in the same sentence.]`[cite: 1]. Place this directly below the main paragraph of Section 3.2.3 and directly above the Section 3.2.4 heading[cite: 1].
-* **Caption:** `Figure 3.5: Raw forum comment samples illustrating BBCode quotation artefacts emoji strings and multilingual code switching`
+* **Caption:** `Figure 3.5: Raw forum comment samples illustrating quotation artefacts, emoji strings, and multilingual code-switching`
 * **Notebook Code:**
 ```python
 printmd("#### Figure 3.5: Raw Forum Post Samples with Noise and Code-Switching")
@@ -62,7 +62,7 @@ display(noise_samples_df[['id', 'text']])
 ### Figure 3.6
 
 * **Exact Word Document Placement:** In Section 3.2.4, replace `[Insert Figure 3.X here. Before and after example of a real post that contained a quote block or forum signature.]`[cite: 1]. Place this directly below the **Step 1 (Removal of forum platform markup)** paragraph and directly above the **Step 2** paragraph[cite: 1].
-* **Caption:** `Figure 3.6: Preprocessing Step 1 elimination of BBCode quotation blocks HTML tags and automated edit signatures`
+* **Caption:** `Figure 3.6: Preprocessing Step 1 elimination of forum quotation blocks, HTML tags, and automated edit signatures`
 * **Notebook Code:**
 ```python
 raw_sample_step1 = df[df['text'].str.contains(r'QUOTE\(', regex=True, na=False)]['text'].iloc[0]
@@ -291,11 +291,7 @@ sample_tfidf_df = pd.DataFrame(
 )
 display(sample_tfidf_df.iloc[:, :7])
 ```
-* **Notebook Placement:** In Section 3.2.5 (TF-IDF Vectorization), paste into a code cell directly below your training TF-IDF vectorizer fitting cell[cite: 1].
-
----
-
-### Figure 3.18
+* **Notebook Placement:** In Section 3.2.5 (TF-IDF Vectorization), paste into a code cell directly below your training TF-IDF vectorizer fitting cell[cite: 1].### Figure 3.18
 
 * **Exact Word Document Placement:** In Section 3.3.3, replace `[Insert Figure 3.X here. A simple diagram showing the dataset splitting into a training portion and a testing portion, with only the training portion feeding into the model during learning.]`[cite: 1]. Place this directly below the final paragraph of Section 3.3.3[cite: 1].
 * **Caption:** `Figure 3.18: Dataset partitioning workflow demonstrating isolated TF-IDF vocabulary fitting on the training split`
@@ -325,21 +321,76 @@ plt.show()
 
 ### Figure 3.19
 
-* **Exact Word Document Placement:** In Section 3.3.5, replace `[Insert Figure 3.X here. Log loss formula, showing negative y times the log of p, plus one minus y times the log of one minus p, where y is the true label and p is the model's predicted probability.]`[cite: 1]. Place this directly below the sentence ending with *"...This is measured using log loss."* and above *"This formula splits into two simple cases..."*[cite: 1].
-* **Caption:** `Figure 3.19: Binary cross entropy log loss optimization objective minimized across training posts in Logistic Regression`
+* **Exact Word Document Placement:** In Section 3.3.4, replace `[Insert Figure 3.X here. A diagram showing one post being passed into six independent binary classifiers, one per category, with each classifier producing its own yes or no answer.]`. Place this directly below the final paragraph of Section 3.3.4 ending with *"...whichever classifiers answered yes."* and directly above the **3.3.5 Logistic Regression** subsection heading.
+* **Caption:** `Figure 3.19: Multi-label One-vs-Rest binary decomposition architecture routing forum posts to six independent binary classifiers`
 * **Notebook Code:**
 ```python
-printmd("#### Figure 3.19: Log Loss Binary Cross-Entropy Formula")
+fig, ax = plt.subplots(figsize=(12, 6.2))
+ax.axis('off')
+
+# Boxes styling
+bbox_input = dict(boxstyle='round,pad=0.6', facecolor='#e2e8f0', edgecolor='#334155', lw=1.5)
+bbox_output = dict(boxstyle='round,pad=0.6', facecolor='#dcfce7', edgecolor='#166534', lw=1.5)
+
+# Draw Input Post
+ax.text(0.08, 0.5, "Input Forum Post (x)\n\n(Cleaned Text &\nTF-IDF Features)", ha='center', va='center', bbox=bbox_input, fontsize=9.5, fontweight='bold')
+
+# Categories & Colors
+categories = ['Inquiry', 'Complaint', 'Opinion', 'Information', 'Expressive', 'Spam']
+y_positions = np.linspace(0.88, 0.12, 6)
+colors = ['#e0f2fe', '#fee2e2', '#fef3c7', '#f3e8ff', '#ecfdf5', '#ffedd5']
+edge_colors = ['#0284c7', '#dc2626', '#d97706', '#9333ea', '#059669', '#ea580c']
+
+for i, (cat, y_pos, bg, edge) in enumerate(zip(categories, y_positions, colors, edge_colors)):
+    bbox_clf = dict(boxstyle='round,pad=0.45', facecolor=bg, edgecolor=edge, lw=1.3)
+    
+    # Draw Classifier Box
+    ax.text(0.48, y_pos, f"Binary Classifier {i+1}: {cat}\n(OvR: {cat} vs Rest)", ha='center', va='center', bbox=bbox_clf, fontsize=9, fontweight='bold')
+    
+    # Arrow from Input to Classifier
+    ax.annotate("", xy=(0.35, y_pos), xytext=(0.18, 0.5), arrowprops=dict(arrowstyle="->", lw=1.3, color='#475569', connectionstyle="arc3,rad=" + str((y_pos - 0.5)*0.2)))
+    
+    # Decision / Output Tag
+    sample_decision = "Yes [1]" if cat in ['Inquiry', 'Expressive'] else "No [0]"
+    badge_bg = '#bbf7d0' if "Yes" in sample_decision else '#f1f5f9'
+    badge_edge = '#16a34a' if "Yes" in sample_decision else '#94a3b8'
+    bbox_ans = dict(boxstyle='square,pad=0.3', facecolor=badge_bg, edgecolor=badge_edge, lw=1)
+    ax.text(0.68, y_pos, sample_decision, ha='center', va='center', bbox=bbox_ans, fontsize=8.5, fontweight='bold', color='#15803d' if "Yes" in sample_decision else '#64748b')
+    
+    # Arrow from Classifier to Decision Tag
+    ax.annotate("", xy=(0.63, y_pos), xytext=(0.60, y_pos), arrowprops=dict(arrowstyle="->", lw=1.2, color='#475569'))
+    
+    # Arrow from Decision Tag to Final Output
+    ax.annotate("", xy=(0.82, 0.5), xytext=(0.74, y_pos), arrowprops=dict(arrowstyle="->", lw=1.2, color='#166534' if "Yes" in sample_decision else '#cbd5e1', linestyle='-' if "Yes" in sample_decision else ':'))
+
+# Draw Final Output
+ax.text(0.91, 0.5, "Predicted Label Set:\n\n{ Inquiry, Expressive }", ha='center', va='center', bbox=bbox_output, fontsize=9.5, fontweight='bold', color='#14532d')
+
+plt.title("Figure 3.19: Multi-Label One-vs-Rest (OvR) Binary Decomposition Architecture", fontsize=11, fontweight='bold', pad=12)
+plt.tight_layout()
+plt.show()
+```
+* **Notebook Placement:** In Section 3.3.4 (One-vs-Rest Architecture), paste into a code cell directly below your train/test split cell.
+
+---
+
+### Figure 3.20
+
+* **Exact Word Document Placement:** In Section 3.3.5, replace `[Insert Figure 3.X here. Log loss formula, showing negative y times the log of p, plus one minus y times the log of one minus p, where y is the true label and p is the model's predicted probability.]`[cite: 1]. Place this directly below the sentence ending with *"...This is measured using log loss."* and above *"This formula splits into two simple cases..."*[cite: 1].
+* **Caption:** `Figure 3.20: Binary cross entropy log loss optimization objective minimized across training posts in Logistic Regression`
+* **Notebook Code:**
+```python
+printmd("#### Figure 3.20: Log Loss Binary Cross-Entropy Formula")
 printmd(r"$$\mathcal{L}_{\log}(y, p) = -\left[ y \ln(p) + (1 - y) \ln(1 - p) \right]$$")
 ```
 * **Notebook Placement:** In Section 3.3.5 (Logistic Regression), paste into a markdown or code cell directly above model training[cite: 1].
 
 ---
 
-### Figure 3.20
+### Figure 3.21
 
 * **Exact Word Document Placement:** In Section 3.3.5, replace `[Insert Figure 3.X here. Sigmoid probability curve for one of the six categories, showing how a raw score is converted into a probability between 0 and 1, with the 0.5 decision threshold marked.]`[cite: 1]. Place this directly below the paragraph ending with *"...process is called gradient descent..."* and above the paragraph starting with *"The specific words each category's classifier learned to weight..."*[cite: 1].
-* **Caption:** `Figure 3.20: Sigmoid activation curve mapping linear decision scores into calibrated probabilities with the 0.5 classification threshold`
+* **Caption:** `Figure 3.21: Sigmoid activation curve mapping linear decision scores into calibrated probabilities with the 0.5 classification threshold`
 * **Notebook Code:**
 ```python
 z_vals = np.linspace(-7, 7, 250)
@@ -349,7 +400,7 @@ plt.figure(figsize=(7, 4))
 plt.plot(z_vals, sig_vals, color='#1e3a8a', lw=2, label=r'$\sigma(z) = \frac{1}{1 + e^{-z}}$')
 plt.axvline(0, color='#b91c1c', linestyle='--', lw=1.2, label='Threshold (z=0, p=0.5)')
 plt.axhline(0.5, color='#94a3b8', linestyle=':')
-plt.title("Figure 3.20: Sigmoid Activation Function and Probability Mapping", fontsize=11, fontweight='bold')
+plt.title("Figure 3.21: Sigmoid Activation Function and Probability Mapping", fontsize=11, fontweight='bold')
 plt.xlabel("Raw Linear Score (z)", fontsize=9.5, fontweight='bold')
 plt.ylabel("Calibrated Probability (p)", fontsize=9.5, fontweight='bold')
 plt.legend(frameon=True)
@@ -357,40 +408,40 @@ plt.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.show()
 ```
-* **Notebook Placement:** In Section 3.3.5 (Logistic Regression), paste directly below the Figure 3.19 formula cell[cite: 1].
+* **Notebook Placement:** In Section 3.3.5 (Logistic Regression), paste directly below the Figure 3.20 formula cell[cite: 1].
 
 ---
 
-### Figure 3.21
+### Figure 3.22
 
 * **Exact Word Document Placement:** In Section 3.3.6, replace `[Insert Figure 3.X here. Linear SVC objective formula, showing one half times the magnitude of the coefficient vector squared, plus C times the total hinge loss summed across all training posts.]`[cite: 1]. Place this directly below the paragraph ending with *"...and make as few classification mistakes as possible."* and above the paragraph starting with *"The first part of this formula..."*[cite: 1].
-* **Caption:** `Figure 3.21: Soft margin Linear Support Vector Classifier mathematical objective balancing margin width and cumulative hinge loss`
+* **Caption:** `Figure 3.22: Soft margin Linear Support Vector Classifier mathematical objective balancing margin width and cumulative hinge loss`
 * **Notebook Code:**
 ```python
-printmd("#### Figure 3.21: Linear SVC Optimization Objective Formula")
+printmd("#### Figure 3.22: Linear SVC Optimization Objective Formula")
 printmd(r"$$\min_{\mathbf{w}, b} \frac{1}{2} \|\mathbf{w}\|^2 + C \sum_{i=1}^{N} \max\left(0, 1 - y_i(\mathbf{w}^T \mathbf{x}_i + b)\right)$$")
 ```
 * **Notebook Placement:** In Section 3.3.6 (Linear SVC), paste into a markdown or code cell directly above the Linear SVC setup[cite: 1].
 
 ---
 
-### Figure 3.22
+### Figure 3.23
 
 * **Exact Word Document Placement:** In Section 3.3.6, replace `[Insert Figure 3.X here. Hinge loss formula, showing the larger of zero or one minus, y times the raw score, where y is the true label encoded as positive one or negative one.]`[cite: 1]. Place this directly below the sentence *"The second part is hinge loss."* and above the paragraph starting with *"If a post is correctly classified..."*[cite: 1].
-* **Caption:** `Figure 3.22: Piecewise linear hinge loss penalty function evaluated for binary margin constraints`
+* **Caption:** `Figure 3.23: Piecewise linear hinge loss penalty function evaluated for binary margin constraints`
 * **Notebook Code:**
 ```python
-printmd("#### Figure 3.22: Hinge Loss Formula")
+printmd("#### Figure 3.23: Hinge Loss Formula")
 printmd(r"$$\mathcal{L}_{\text{hinge}}(y, \hat{y}) = \max(0, 1 - y \cdot \hat{y})$$")
 ```
-* **Notebook Placement:** In Section 3.3.6 (Linear SVC), paste directly below the Figure 3.21 formula cell[cite: 1].
+* **Notebook Placement:** In Section 3.3.6 (Linear SVC), paste directly below the Figure 3.22 formula cell[cite: 1].
 
 ---
 
-### Figure 3.23
+### Figure 3.24
 
 * **Exact Word Document Placement:** In Section 3.3.6, replace `[Insert Figure 3.X here. Simplified two feature illustration of the Linear SVC decision boundary, the margin around it, and the support vectors sitting on the edge of the margin. Caption should note this is a simplified illustration for conceptual purposes, since the actual model operates across 72,943 features.]`[cite: 1]. Place this directly below the paragraph ending with *"...and was never calibrated to behave like one."* and above the paragraph starting with *"The specific words each category's classifier learned..."*[cite: 1].
-* **Caption:** `Figure 3.23: Simplified two-feature geometric diagram of the Linear Support Vector Classifier decision boundary margins and support vectors`
+* **Caption:** `Figure 3.24: Simplified two-feature geometric diagram of the Linear Support Vector Classifier decision boundary margins and support vectors`
 * **Notebook Code:**
 ```python
 plt.figure(figsize=(7, 4.2))
@@ -402,7 +453,7 @@ plt.scatter([0.5, -0.5], [1.75, -1.75], s=120, facecolors='none', edgecolors='#c
 plt.scatter([1, 1.6, 2.2], [2.4, 3.1, 2.7], color='#1e3a8a', s=50, label='Class +1')
 plt.scatter([-1, -1.6, -2.2], [-2.4, -3.1, -2.7], color='#b91c1c', s=50, label='Class -1')
 
-plt.title("Figure 3.23: Linear SVC Margin and Hyperplane (Conceptual 2D)", fontsize=11, fontweight='bold')
+plt.title("Figure 3.24: Linear SVC Margin and Hyperplane (Conceptual 2D)", fontsize=11, fontweight='bold')
 plt.xlabel("Feature Dimension 1", fontsize=9.5, fontweight='bold')
 plt.ylabel("Feature Dimension 2", fontsize=9.5, fontweight='bold')
 plt.legend(loc='upper left', fontsize=8.5, frameon=True)
@@ -410,14 +461,14 @@ plt.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.show()
 ```
-* **Notebook Placement:** In Section 3.3.6 (Linear SVC), paste directly below the Figure 3.22 formula cell[cite: 1].
+* **Notebook Placement:** In Section 3.3.6 (Linear SVC), paste directly below the Figure 3.23 formula cell[cite: 1].
 
 ---
 
-### Figure 3.24
+### Figure 3.25
 
 * **Exact Word Document Placement:** In Section 3.4, replace `[Insert Figure 3.X here. A labelled diagram of a confusion matrix, empty template only, no real numbers, since this section only describes the metrics rather than reporting outcomes.]`[cite: 1]. Place this directly below the paragraph ending with *"...that truly belonged to the category but was not flagged."* and above the **Accuracy** subsection heading[cite: 1].
-* **Caption:** `Figure 3.24: Binary classification confusion matrix quadrant framework defining positive and negative prediction states`
+* **Caption:** `Figure 3.25: Binary classification confusion matrix quadrant framework defining positive and negative prediction states`
 * **Notebook Code:**
 ```python
 matrix_layout = [["True Positive (TP)", "False Negative (FN)"],
@@ -428,7 +479,7 @@ sns.heatmap([[1, 0], [0, 1]], annot=matrix_layout, fmt="", cmap="Blues", cbar=Fa
             xticklabels=["Predicted Positive", "Predicted Negative"],
             yticklabels=["Actual Positive", "Actual Negative"],
             annot_kws={'fontsize': 10, 'fontweight': 'bold'})
-plt.title("Figure 3.24: Binary Confusion Matrix Template Layout", fontsize=11, fontweight='bold')
+plt.title("Figure 3.25: Binary Confusion Matrix Template Layout", fontsize=11, fontweight='bold')
 plt.tight_layout()
 plt.show()
 ```
@@ -436,19 +487,19 @@ plt.show()
 
 ---
 
-### Figure 3.25
+### Figure 3.26
 
 * **Exact Word Document Placement:** In Section 3.4, replace the four separate placeholder tags under the metric definitions (`[Insert Figure 3.X here. Accuracy formula...]`, `[Insert Figure 3.X here. Precision formula...]`, `[Insert Figure 3.X here. Recall formula...]`, and `[Insert Figure 3.X here. F1 Score formula...]`) with this combined formula representation[cite: 1].
-* **Caption:** `Figure 3.25: Mathematical evaluation formulas for per-category classification performance metrics`
+* **Caption:** `Figure 3.26: Mathematical evaluation formulas for per-category classification performance metrics`
 * **Notebook Code:**
 ```python
-printmd("#### Figure 3.25: Mathematical Formulas for Evaluation Metrics")
+printmd("#### Figure 3.26: Mathematical Formulas for Evaluation Metrics")
 printmd(r"""
 $$\text{Accuracy} = \frac{\text{TP} + \text{TN}}{\text{TP} + \text{TN} + \text{FP} + \text{FN}}, \quad \text{Precision} = \frac{\text{TP}}{\text{TP} + \text{FP}}$$
 $$\text{Recall} = \frac{\text{TP}}{\text{TP} + \text{FN}}, \quad \text{F1 Score} = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}$$
 """)
 ```
-* **Notebook Placement:** In Section 3.4 (Evaluation Metrics), paste directly below the Figure 3.24 confusion matrix template[cite: 1].
+* **Notebook Placement:** In Section 3.4 (Evaluation Metrics), paste directly below the Figure 3.25 confusion matrix template[cite: 1].
 
 ---
 
@@ -516,7 +567,7 @@ plot_sigmoid_probability_curves(lr_models, X_test_tfidf, target_cols)
 ### Figure 4.6
 
 * **Exact Word Document Placement:** In Section 4.1.5, replace `[Insert Figure 4.6 here. Screenshot of the top 15 predictive words table per category for Logistic Regression, produced under Step 21.1.]`[cite: 1]. Place this directly below the **4.1.5 Top Predictive Words per Category** heading and above Figure 4.7[cite: 1].
-* **Caption:** `Figure 4.6: Top positive predictive features per category ranked by coefficient magnitude for Logistic Regression`
+* **Caption:** `Figure 4.6: Top positive predictive features per category ranked by coefficient magnitude for Logistic Regression (vulgar terms masked)`
 * **Notebook Code:**
 ```python
 printmd("#### Figure 4.6: Top 15 Predictive Features per Category (Logistic Regression)")
@@ -529,7 +580,7 @@ display(df_top_words_lr)
 ### Figure 4.7
 
 * **Exact Word Document Placement:** In Section 4.1.5, replace `[Insert Figure 4.7 here. Screenshot of the top 15 predictive words table per category for Linear SVC, produced under Step 24.1.]`[cite: 1]. Place this directly below Figure 4.6 and above the paragraph starting with *"These two tables list the words and short phrases..."*[cite: 1].
-* **Caption:** `Figure 4.7: Top positive predictive features per category ranked by hyperplane weight for Linear Support Vector Classifier`
+* **Caption:** `Figure 4.7: Top positive predictive features per category ranked by hyperplane weight for Linear Support Vector Classifier (vulgar terms masked)`
 * **Notebook Code:**
 ```python
 printmd("#### Figure 4.7: Top 15 Predictive Features per Category (Linear SVC)")
@@ -542,10 +593,10 @@ display(df_top_words_svc)
 ### Figure 4.8
 
 * **Exact Word Document Placement:** In Section 4.1.6, replace `[Insert Figure 4.8 here. Screenshot of the printed decision boundary equations for Logistic Regression, produced under Step 21.2.]`[cite: 1]. Place this directly below the **4.1.6 Learned Decision Boundary Equations** heading and above Figure 4.9[cite: 1].
-* **Caption:** `Figure 4.8: Learned decision boundary linear equations with model intercepts and dominant feature weights for Logistic Regression`
+* **Caption:** `Figure 4.8: Learned decision boundary linear equations with model intercepts and dominant feature weights for Logistic Regression (vulgar terms masked)`
 * **Notebook Code:**
 ```python
-printmd("#### Figure 4.8: Learned Decision Boundary Equations (Logistic Regression)")
+printmd("#### Figure 4.8: Learned Decision Boundary Equations (Logistic Regression) (vulgar terms masked)")
 display_decision_boundary_equations_lr(lr_models, feature_names, target_cols)
 ```
 * **Notebook Placement:** In Step 21.2 (Logistic Regression Decision Equations), run inside the Step 21.2 equation display cell[cite: 1].
@@ -555,10 +606,10 @@ display_decision_boundary_equations_lr(lr_models, feature_names, target_cols)
 ### Figure 4.9
 
 * **Exact Word Document Placement:** In Section 4.1.6, replace `[Insert Figure 4.9 here. Screenshot of the printed decision boundary equations for Linear SVC, produced under Step 24.2.]`[cite: 1]. Place this directly below Figure 4.8 and above the paragraph starting with *"This shows, in equation form, exactly how the raw score..."*[cite: 1].
-* **Caption:** `Figure 4.9: Learned decision boundary linear equations with model intercepts and dominant hyperplane weights for Linear Support Vector Classifier`
+* **Caption:** `Figure 4.9: Learned decision boundary linear equations with model intercepts and dominant hyperplane weights for Linear Support Vector Classifier (vulgar terms masked)`
 * **Notebook Code:**
 ```python
-printmd("#### Figure 4.9: Learned Decision Boundary Equations (Linear SVC)")
+printmd("#### Figure 4.9: Learned Decision Boundary Equations (Linear SVC) (vulgar terms masked)")
 display_decision_boundary_equations_svc(svc_models, feature_names, target_cols)
 ```
 * **Notebook Placement:** In Step 24.2 (Linear SVC Decision Equations), run inside the Step 24.2 equation display cell[cite: 1].
