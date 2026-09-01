@@ -1,35 +1,3 @@
-"""
-Intent Classification - Preprocessing Pipeline & Real-Time Prediction
-=======================================================================
-
-Standalone version of Steps 27 & 28 from `intent_classification.ipynb`.
-
-This file defines every function needed to:
-  1. Clean/preprocess raw forum text (Steps 2-16, encapsulated in
-     `preprocess_pipeline`, matching notebook Step 27).
-  2. Load the already-trained model artifacts from disk.
-  3. Run real-time multi-label intent prediction on new/unseen text
-     (matching notebook Step 28).
-
-No dataset is required to run this file — only the saved artifacts:
-    - tfidf_vectorizer.joblib
-    - logistic_regression_model.joblib
-    - linear_svc_model.joblib
-(and, if you want slang normalization to do anything, the optional
-slang dictionary JSON files listed in `SLANG_FILE_PRIORITY` below.)
-
-Because every function is defined at module level, you (or your
-teacher) can import this file and call any single function on its
-own, e.g.:
-
-    from intent_prediction_pipeline import preprocess_pipeline, predict_unseen
-    print(preprocess_pipeline("some raw forum post"))
-    print(predict_unseen("some raw forum post"))
-
-Running this file directly (`python intent_prediction_pipeline.py`)
-starts the interactive command-line predictor from Step 28.
-"""
-
 import warnings
 warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -62,10 +30,7 @@ def printmd(string_):
     """Print a plain-text message (was markdown rendering in the notebook)."""
     print(string_)
 
-
-# ---------------------------------------------------------------------------
 # 0. NLTK downloads (all corpora/models used anywhere in the pipeline below)
-# ---------------------------------------------------------------------------
 nltk_download('punkt', quiet=True)
 nltk_download('punkt_tab', quiet=True)
 nltk_download('averaged_perceptron_tagger', quiet=True)
@@ -73,14 +38,9 @@ nltk_download('averaged_perceptron_tagger_eng', quiet=True)
 nltk_download('wordnet', quiet=True)
 nltk_download('words', quiet=True)
 
-
-# Target intent columns (must match the order used when the models were trained)
 target_cols = ['Inquiry', 'Complaint', 'Opinion', 'Information', 'Expressive', 'Spam']
 
-
-# ===========================================================================
 # Step 2: Remove Lowyat Quotes, BBCode, Signatures, and HTML
-# ===========================================================================
 
 def remove_quote_blocks(text):
     if not isinstance(text, str):
@@ -154,10 +114,7 @@ def remove_html_tags(text):
     text = re.sub(r'</?(?:div|br|p|span|table|tbody|tr|td|th|thead|tfoot|ul|ol|li|img|a|strong|em|hr|blockquote|font|button|input|form)\b[^>]*>', ' ', text, flags=re.IGNORECASE)
     return text
 
-
-# ===========================================================================
 # Step 3: Special Element Masking
-# ===========================================================================
 
 def mask_emails(text):
     if not isinstance(text, str):
@@ -220,8 +177,6 @@ def mask_nric(text):
     text = re.sub(nric_pattern, ' NRICTOKEN ', text, flags=re.IGNORECASE)
     return text
 
-
-# --- Price masking (regex constants) ---
 CURRENCY_PREFIX = r'(?:\b(?:RM|MYR|USD|SGD|AUD|RP)\.?|(?<!\w)(?:S\$|\$))'
 CURRENCY_SUFFIX = r'(?:sen|cents?|ringgit|dollars?|myr|rm|usd|sgd|aud|rp)'
 NUM_PATTERN = r'\d+(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?'
@@ -247,8 +202,6 @@ def mask_prices(text):
     text = MONETARY_K_REGEX.sub(' PRICETOKEN ', text)
     return text
 
-
-# --- Time masking (regex constants) ---
 MALAY_TIME_PREFIX = r'(?:pukul|jam|kul|kol|pkl)'
 MALAY_TIME_OF_DAY = r'(?:pagi|tengah\s*hari|tengahari|tgh\s*hari|tghari|petang|ptg|malam|mlm)'
 ENGLISH_TIME_OF_DAY = (
@@ -279,8 +232,6 @@ def mask_time(text):
         return text
     return TIME_REGEX.sub(' TIMETOKEN ', text)
 
-
-# --- Date masking (regex constants) ---
 MONTH_NAMES = (
     r'(?:jan(?:uary)?|januari|'
     r'feb(?:ruary)?|februari|'
@@ -313,10 +264,7 @@ def mask_dates(text):
         return text
     return DATE_REGEX.sub(' DATETOKEN ', text)
 
-
-# ===========================================================================
 # Step 4: Remove Elongated Content & Normalize Forum Laughter
-# ===========================================================================
 
 def remove_elongated_content(text):
     if not isinstance(text, str) or not text.strip():
@@ -339,10 +287,7 @@ def remove_elongated_content(text):
 
     return text
 
-
-# ===========================================================================
 # Step 5: Convert Emojis to Text
-# ===========================================================================
 
 def convert_emojis(text):
     if not isinstance(text, str) or not text.strip():
@@ -350,18 +295,12 @@ def convert_emojis(text):
     converted = demojize(text, delimiters=("<emoji>", "</emoji>"))
     return re.sub(r'<emoji>(.*?)</emoji>', lambda m: f" {m.group(1).replace('_', ' ')} ", converted)
 
-
-# ===========================================================================
 # Step 6: Lowercasing
-# ===========================================================================
 
 def to_lowercase(text):
     return text.lower() if isinstance(text, str) else ""
 
-
-# ===========================================================================
 # Step 7: Build Priority-Cascading Slang Dictionary & Normalize Slangs
-# ===========================================================================
 
 def build_slang_dictionary(file_paths):
     combined_dict = {}
@@ -378,10 +317,6 @@ def build_slang_dictionary(file_paths):
             pass
     return combined_dict
 
-
-# Priority-cascaded slang dictionary list.
-# These JSON files are optional: if missing, slang normalization simply
-# becomes a no-op (see build_slang_dictionary's FileNotFoundError handling).
 SLANG_FILE_PRIORITY = [
     'custom_malay_slang.json',
     'custom_english_slang.json',
@@ -407,18 +342,12 @@ def normalize_slangs(text):
         text = PHRASE_REGEX.sub(lambda m: MULTI_WORD_SLANG[m.group(0).lower()], text)
     return re.sub(r'\b[a-zA-Z0-9]+\b', lambda m: SINGLE_WORD_SLANG.get(m.group(0).lower(), m.group(0)), text)
 
-
-# ===========================================================================
 # Step 8: Fix Contractions
-# ===========================================================================
 
 def fix_contractions(text):
     return fix_contractions_func(text) if isinstance(text, str) else ""
 
-
-# ===========================================================================
 # Step 9: Remove All Punctuations
-# ===========================================================================
 
 def remove_punctuations(text):
     if not isinstance(text, str):
@@ -426,10 +355,7 @@ def remove_punctuations(text):
     punct_pattern = f"[{re.escape(string.punctuation)}]"
     return re.sub(punct_pattern, ' ', text)
 
-
-# ===========================================================================
 # Step 10: Split Alphanumeric Tokens & Remove Standalone Numbers
-# ===========================================================================
 
 def split_and_remove_numbers(text):
     if not isinstance(text, str):
@@ -440,30 +366,21 @@ def split_and_remove_numbers(text):
     text = re.sub(r'\b\d+\b', ' ', text)
     return re.sub(r'\s+', ' ', text).strip()
 
-
-# ===========================================================================
 # Step 11: Remove Non-Latin Words / Characters
-# ===========================================================================
 
 def remove_non_latin(text):
     if not isinstance(text, str):
         return ""
     return re.sub(r'[^\x00-\x7F]+', ' ', text)
 
-
-# ===========================================================================
 # Step 12: Word Tokenization
-# ===========================================================================
 
 def tokenize_words(text):
     if not isinstance(text, str) or not text.strip():
         return []
     return word_tokenize(text)
 
-
-# ===========================================================================
 # Step 13: Language Classification and Token Tagging
-# ===========================================================================
 
 NLTK_WORDS_SET = {w.lower() for w in words.words()}
 MASKING_TAGS = {'emailtoken', 'urltoken', 'phonetoken', 'nrictoken', 'pricetoken', 'timetoken', 'datetoken'}
@@ -490,10 +407,7 @@ def tag_tokens(tokens):
             tagged.append((token, "UNKNOWN"))
     return tagged
 
-
-# ===========================================================================
 # Step 14: Part-of-Speech (POS) Tagging for English Tokens
-# ===========================================================================
 
 def get_simplified_pos(ptb_tag):
     if ptb_tag.startswith('J'):
@@ -524,10 +438,7 @@ def pos_tag_english_tokens(tagged_tokens):
 
     return pos_tagged_list
 
-
-# ===========================================================================
 # Step 15: Morphological Normalization (Lemmatization with POS & Stemming)
-# ===========================================================================
 
 lemmatizer = WordNetLemmatizer()
 
@@ -556,10 +467,7 @@ def lemmatize_and_stem(pos_tagged_tokens):
 
     return processed
 
-
-# ===========================================================================
 # Step 16: Stop Word Removal
-# ===========================================================================
 
 PRESERVED_WORDS = {'why', 'how', 'what', 'which', 'where', 'who', 'kenapa', 'mengapa', 'bagaimana'}
 ENGLISH_STOPWORDS = set(SPACY_STOPWORDS) - PRESERVED_WORDS
@@ -583,10 +491,7 @@ def remove_stopwords(morph_tokens):
 
     return cleaned
 
-
-# ===========================================================================
 # Step 27: Preprocessing Pipeline Encapsulation & Model Artifact Loading
-# ===========================================================================
 
 def preprocess_pipeline(raw_text):
     # Step 2: Remove Lowyat Quotes, BBCode, Signatures, and HTML
@@ -648,17 +553,11 @@ def preprocess_pipeline(raw_text):
 
     return ' '.join([t[0] for t in filtered])
 
-
-# Load serialized artifacts from disk (must be in the same working directory,
-# or replace with the correct paths).
 loaded_tfidf = joblib_load("tfidf_vectorizer.joblib")
 loaded_lr = joblib_load("logistic_regression_model.joblib")
 loaded_svc = joblib_load("linear_svc_model.joblib")
 
-
-# ===========================================================================
 # Step 28: Real-Time Prediction on Unseen Posts (Showing Both Models)
-# ===========================================================================
 
 def format_ranked_badges(ranked_list, is_probability=True):
     if not ranked_list:
@@ -696,13 +595,11 @@ def predict_unseen(raw_text):
 
     vectorized_input = loaded_tfidf.transform([cleaned_input])
 
-    # Logistic Regression: Rank positive predictions by probability
     lr_probs = loaded_lr.predict_proba(vectorized_input)[0]
     lr_preds = loaded_lr.predict(vectorized_input)[0]
     lr_positive = [(target_cols[i], lr_probs[i]) for i, val in enumerate(lr_preds) if val == 1]
     lr_ranked = sorted(lr_positive, key=lambda x: x[1], reverse=True)
 
-    # Linear SVC: Rank positive predictions by raw decision margin scores
     svc_scores = loaded_svc.decision_function(vectorized_input)[0]
     svc_preds = loaded_svc.predict(vectorized_input)[0]
     svc_positive = [(target_cols[i], svc_scores[i]) for i, val in enumerate(svc_preds) if val == 1]
